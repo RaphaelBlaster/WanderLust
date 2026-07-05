@@ -1,7 +1,7 @@
 // Listing model
 const Listing = require("../models/listing.js");
 // Custom error class
-const ExpressError = require("../utils/expressError.js");
+const ExpressError = require("../utils/ExpressError.js");
 const { geocode } = require("../utils/geocode.js");
 
 
