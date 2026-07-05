@@ -1,0 +1,148 @@
+<% layout("layouts/boilerplate") -%>
+
+
+    <div class="row mt-3">
+        <div class="col-8 offset-2">
+            <h3>
+                <%= listing.title %>
+            </h3>
+
+            <div class="card show-card">
+                <img src="<%= listing.image.url %>" class="card-img-top show-img" alt="listing_image">
+                <div class="card-body">
+                    <p class="card-text">Owned by <%= listing.owner ? listing.owner.username : "Unknown user" %>
+                    </p>
+                    <p class="card-text">
+                        <%= listing.description %>
+                    </p>
+                    <p class="card-text">
+                        &#8377; <%= Number(listing.price || 0).toLocaleString("en-IN") %>
+                    </p>
+                    <p class="card-text">
+                        <%= listing.location %>
+                    </p>
+                    <p class="card-text">
+                        <%= listing.country %>
+                    </p>
+                                 </div>
+                         </div>
+                          <!-- Map always visible -->
+                          <h4>Where u will be</h4>
+                         <div id="map" style="height:350px;width:100%;border-radius:8px;margin:1rem 0;"></div>
+                         <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+                         <script>
+                           const lat = <%= listing.geometry?.lat || 20 %>;
+                           const lng = <%= listing.geometry?.lng || 78 %>;
+                           const map = L.map('map').setView([lat, lng], 10);
+                           L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                             attribution: '© OpenStreetMap contributors'
+                           }).addTo(map);
+                           L.marker([lat, lng])
+                             .addTo(map)
+                             .bindPopup("<b><%= listing.title %></b><br><%= listing.location %>")
+                             .openPopup();
+                         </script>
+
+            <%if(curUser && listing.owner && listing.owner._id.equals(curUser._id)) { %>
+                <div class="show-actions">
+
+                    <a href="/listings/<%= listing._id %>/edit" class="btn btn-dark">Edit this listing</a>
+                    <form action="/listings/<%= listing._id %>?_method=DELETE" method="POST">
+                        <button class="btn btn-danger">Delete</button>
+                    </form>
+
+                </div>
+                <% } %>
+                    <% if(curUser) {%>
+                         <div class="review-section">
+<hr>
+<h4>Leave a Review</h4>
+
+                            <form class="mb-3 needs-validation" action="/listings/<%= listing.id %>/reviews"
+                                method="POST" novalidate>
+                                <fieldset class="starability-checkmark">
+    <legend>First rating:</legend>
+                                    
+                                    <input type="radio" id="no-rate" class="input-no-rate" name="review[rating]"
+                                        value="1" checked aria-label="No rating." />
+                                    <input type="radio" id="first-rate1" name="review[rating]" value="1" />
+                                    <label for="first-rate1" title="Terrible">1 star</label>
+                                    <input type="radio" id="first-rate2" name="review[rating]" value="2" />
+                                    <label for="first-rate2" title="Not good">2 stars</label>
+                                    <input type="radio" id="first-rate3" name="review[rating]" value="3" />
+                                    <label for="first-rate3" title="Average">3 stars</label>
+                                    <input type="radio" id="first-rate4" name="review[rating]" value="4" />
+                                    <label for="first-rate4" title="Very good">4 stars</label>
+                                    <input type="radio" id="first-rate5" name="review[rating]" value="5" />
+                                    <label for="first-rate5" title="Amazing">5 stars</label>
+                                </fieldset>
+<script>
+  const legend = document.querySelector('fieldset.starability-checkmark legend');
+  const radios = document.querySelectorAll('input[name="review[rating]"]');
+  function updateLegend(){
+    if (Array.from(radios).some(r=> r.checked && r.value !== '1')) {
+      legend.style.display = 'none';
+    } else {
+      legend.style.display = '';
+    }
+  }
+  radios.forEach(r=> r.addEventListener('change', updateLegend));
+  // initial state
+  updateLegend();
+</script>
+
+                                <!-- <div class="mb-3 mt-3">
+                                    <label for="rating" class="form-label">Rating</label>
+                                    <input class="form-range" type="range" min="1" max="5" id="rating"
+                                        name="review[rating]">
+                                </div> -->
+                                <div class="mb-3 mt-3">
+                                    <label for="comment">Comments</label>
+                                    <textarea class="form-control" name="review[comment]" id="comment" cols="30"
+                                        rows="5" required></textarea>
+                                    <div class="invalid-feedback">Please add a comment.</div>
+                                </div>
+                                <button class="btn btn-outline-dark">Submit</button>
+                            </form>
+                            <% } %>
+<hr>
+
+
+                                <h4>All Reviews</h4>
+                                <div class="row">
+                                    <% for(review of listing.reviews) { %>
+                                        <div class="card col-5 ms-3 mb-3 review-card">
+                                            <div class="card-body">
+                                                <h5 class="card-title">
+                                                    <%= review.author.username %>
+                                                </h5>
+                                                <p class="card-text">
+                                                    <%= review.comment %>
+                                                </p>
+                                                <p class="card-text">
+                                                    <%= review.rating %> stars
+                                                </p>
+                                                <p class="starability-result" data-rating="<%=review.rating %>">
+                                                    Rated: <%=review.rating %> stars
+                                                </p>
+                                                <% if(curUser && review.author._id.equals(curUser._id)) {%>
+                                                    <form class="mb-3" method="POST"
+                                                        action="/listings/<%=listing._id%>/reviews/<%= review._id%>?_method=DELETE">
+                                                        <button class="btn btn-sm btn-dark">Delete</button>
+                                                    </form>
+
+                                                    <%}%>
+
+
+                         </div>
+
+
+
+
+                 <% } %>
+
+                                </div>
+                        </div>
+
+        </div>
+    </div>
